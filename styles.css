@@ -1,83 +1,82 @@
 body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    background-color: #fff;
-    color: #000;
-    padding: 1em;
-    font-size: 16px;
+  font-family: Arial, sans-serif;
+  background-color: #fff;
+  color: #111;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+header, footer {
+  background-color: #000;
+  color: #fff;
+  padding: 1rem;
+  text-align: center;
+}
+
+h1 {
+  font-size: 1.8rem;
+}
+
+button {
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  margin-top: 1rem;
+  background-color: #005ea5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:focus {
+  outline: 3px solid yellow;
+}
+
+#collection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.artefact {
+  border: 2px solid #333;
+  padding: 1rem;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.artefact img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.artefact h2 {
+  font-size: 1.2rem;
+  margin: 0.5rem 0;
+}
+
+.artefact p {
+  font-size: 1rem;
+}
+
+.high-contrast {
+  background-color: #000;
+  color: #fff;
+  border-color: #fff;
+}
+
+.high-contrast button {
+  background-color: #fff;
+  color: #000;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
   }
-  
-  header, footer {
-    text-align: center;
-    margin-bottom: 1em;
-  }
-  
-  .controls {
-    margin-top: 0.5em;
-  }
-  
-  button {
-    margin: 0 0.5em;
-    padding: 0.5em 1em;
-    cursor: pointer;
-  }
-  
-  #artefacts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1em;
-    justify-content: center;
-  }
-  
-  .artefact {
-    border: 1px solid #ccc;
-    padding: 1em;
-    max-width: 300px;
-    cursor: pointer;
-  }
-  
-  .artefact img {
-    max-width: 100%;
-    height: auto;
-  }
-  
-  .high-contrast {
-    background-color: #000;
-    color: #fff;
-  }
-  
-  .high-contrast .artefact {
-    border-color: #fff;
-  }
-  
-  .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .modal-content {
-    background-color: #fff;
-    color: #000;
-    padding: 2em;
-    max-width: 500px;
-    width: 90%;
-    position: relative;
-  }
-  
-  .modal-content button {
-    position: absolute;
-    top: 1em;
-    right: 1em;
-    background: none;
-    border: none;
-    font-size: 1.5em;
-  }
+}
   
   
