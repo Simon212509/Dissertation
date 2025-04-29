@@ -1,109 +1,80 @@
-const artefactsContainer = document.getElementById('artefacts');
-const contrastToggle = document.getElementById('contrast-toggle');
-const increaseText = document.getElementById('increase-text');
-const decreaseText = document.getElementById('decrease-text');
-const modal = document.getElementById('modal');
-const modalTitle = document.getElementById('modal-title');
-const modalDesc = document.getElementById('modal-desc');
-const modalClose = document.getElementById('modal-close');
+const collectionEl = document.getElementById("collection");
+const ttsToggle = document.getElementById("tts-toggle");
+const contrastToggle = document.getElementById("contrast-toggle");
+let ttsEnabled = false;
+let highContrastEnabled = false;
 
-let currentFontSize = 16;
-
-contrastToggle.addEventListener('click', () => {
-  document.body.classList.toggle('high-contrast');
-});
-
-increaseText.addEventListener('click', () => {
-  currentFontSize += 2;
-  document.body.style.fontSize = `${currentFontSize}px`;
-});
-
-decreaseText.addEventListener('click', () => {
-  currentFontSize = Math.max(12, currentFontSize - 2);
-  document.body.style.fontSize = `${currentFontSize}px`;
-});
-
-modalClose.addEventListener('click', () => {
-  modal.hidden = true;
-  modalTitle.textContent = '';
-  modalDesc.textContent = '';
-});
-
-window.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !modal.hidden) {
-    modal.hidden = true;
-    modalTitle.textContent = '';
-    modalDesc.textContent = '';
-  }
-});
-
+// Fetch data from V&A API for 30 artefacts related to Prints, Drawings & Paintings
 async function fetchArtefacts() {
   try {
-    const response = await fetch('https://api.vam.ac.uk/v2/objects/search?q=fashion&page_size=30&images=true');
-    const data = await response.json();
-    displayArtefacts(data.records);
-  } catch (error) {
-    artefactsContainer.innerHTML = '<p>Error fetching artefacts.</p>';
-    console.error(error);
+    // Fetch first 15 artefacts (page 1)
+    const page1 = await fetch("https://api.vam.ac.uk/v2/objects/search?q=prints%20drawings%20paintings&limit=15&page=1");
+    const data1 = await page1.json();
+    
+    // Fetch second 15 artefacts (page 2)
+    const page2 = await fetch("https://api.vam.ac.uk/v2/objects/search?q=prints%20drawings%20paintings&limit=15&page=2");
+    const data2 = await page2.json();
+
+    // Combine the results from both pages
+    const allItems = [...data1.records, ...data2.records];
+
+    // Display artefacts once data is retrieved
+    collectionEl.setAttribute("aria-busy", "false");
+    allItems.forEach(item => displayArtefact(item));
+  } catch (err) {
+    console.error("Error fetching artefacts:", err);
+    collectionEl.innerHTML = "<p role='alert'>Failed to load artefacts. Please try again later.</p>";
   }
 }
 
-function displayArtefacts(artefacts) {
-  artefactsContainer.innerHTML = '';
-  artefacts.forEach(item => {
-    const title = item.title || 'Untitled';
-    const maker = item._primaryMaker || 'Unknown maker';
-    const date = item.objectDate || 'Date not available';
-    const description = item._primaryDescription || 'No description available.';
-    const imageId = item._primaryImageId;
-    const imageUrl = imageId
-      ? `https://framemark.vam.ac.uk/collections/${imageId}/full/768,/0/default.jpg`
-      : '';
+// Display each artefact
+function displayArtefact(item) {
+  const artefactEl = document.createElement("article");
+  artefactEl.className = "artefact";
+  artefactEl.setAttribute("tabindex", "0"); // Make artefacts focusable for keyboard navigation
 
-    const article = document.createElement('article');
-    article.className = 'artefact';
-    article.tabIndex = 0;
-    article.setAttribute('role', 'button');
-    article.setAttribute('aria-pressed', 'false');
-    article.setAttribute('aria-label', `${title} by ${maker}, ${date}. Click for more information.`);
+  const title = item.title || "Untitled Artefact";
+  const description = item.description || "No description available for this artefact.";
+  const imageUrl = item._primaryImageId ? `https://media.vam.ac.uk/media/thira/collection_images/${item._primaryImageId.slice(0, 6)}/${item._primaryImageId}.jpg` : '';
+  
+  // Create the HTML structure for the artefact
+  artefactEl.innerHTML = `
+    <h2>${title}</h2>
+    ${imageUrl ? `<img src="${imageUrl}" alt="${title}" class="artefact-image">` : `<p>No image available</p>`}
+    <p>${description}</p>
+  `;
 
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    img.alt = `${title} by ${maker}, ${date}`;
+  collectionEl.appendChild(artefactEl);
 
-    const h2 = document.createElement('h2');
-    h2.textContent = title;
-
-    const pMaker = document.createElement('p');
-    pMaker.textContent = `Maker: ${maker}`;
-
-    const pDate = document.createElement('p');
-    pDate.textContent = `Date: ${date}`;
-
-    article.appendChild(img);
-    article.appendChild(h2);
-    article.appendChild(pMaker);
-    article.appendChild(pDate);
-
-    article.addEventListener('click', () => {
-      modalTitle.textContent = title;
-      modalDesc.textContent = description;
-      modal.hidden = false;
-    });
-
-    article.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        modalTitle.textContent = title;
-        modalDesc.textContent = description;
-        modal.hidden = false;
-      }
-    });
-
-    artefactsContainer.appendChild(article);
-  });
+  // Text-to-speech feature
+  if (ttsEnabled) {
+    artefactEl.addEventListener("focus", () => speakText(`${title}. ${description}`));
+  }
 }
 
+// Text-to-Speech Function
+function speakText(text) {
+  if (!window.speechSynthesis) return;
+  const utterance = new SpeechSynthesisUtterance(text);
+  speechSynthesis.cancel(); // Cancel previous utterances
+  speechSynthesis.speak(utterance);
+}
+
+// Toggle Text-to-Speech on and off
+ttsToggle.addEventListener("click", () => {
+  ttsEnabled = !ttsEnabled;
+  ttsToggle.textContent = ttsEnabled ? "🔇 Disable Audio" : "🔊 Enable Audio";
+  alert(ttsEnabled ? "Text-to-speech enabled." : "Text-to-speech disabled.");
+});
+
+// Toggle High Contrast Mode
+contrastToggle.addEventListener("click", () => {
+  highContrastEnabled = !highContrastEnabled;
+  document.body.classList.toggle("high-contrast", highContrastEnabled);
+  contrastToggle.textContent = highContrastEnabled ? "⚪ Normal Contrast" : "⚫ High Contrast";
+});
+
+// Initialize and fetch artefacts
 fetchArtefacts();
 
 
